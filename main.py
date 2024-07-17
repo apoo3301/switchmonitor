@@ -1,47 +1,95 @@
+import os 
+import sys
+import socket
+import datetime
 import time
-from ping3 import ping
-from pysnmp.hlapi import *
 
-def ping_switch(ip):
-    response = ping(ip, timeout=1)
-    return response is not None
+FILE = os.path.join(os.getcwd(), "networkinfo.log")
 
-def get_switch_status(ip, community, oid):
-    iterator = getCmd(SnmpEngine(),
-                      CommunityData(community),
-                      UdpTransportTarget((ip, 161)),
-                      ContextData(),
-                      ObjectType(ObjectIdentity(oid)))
-    
-    errorIndication, errorStatus, errorIndex, varBinds = next(iterator)
-    
-    if errorIndication:
-        print(errorIndication)
-        return None
-    elif errorStatus:
-        print('%s at %s' % (errorStatus.prettyPrint(),
-                            errorIndex and varBinds[int(errorIndex) - 1][0] or '?'))
-        return None
+def ping():
+    try:
+        socket.setdefaulttimeout(3)
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        host = ""
+        port = ""
+        server_address = (host, port)
+        s.connect(server_address)
+
+    except OSError as error:
+        return False
     else:
-        for varBind in varBinds:
-            return varBind.prettyPrint()
+        s.close()
+        return True
 
-def monitor_switch(ip, community, oid, interval=5):
-    while True:
-        is_alive = ping_switch(ip)
-        if is_alive:
-            print(f"{time.strftime('%Y-%m-%d %H:%M:%S')} - Switch {ip} is UP")
-            status = get_switch_status(ip, community, oid)
-            if status:
-                print(f"Switch status: {status}")
-        else:
-            print(f"{time.strftime('%Y-%m-%d %H:%M:%S')} - Switch {ip} is DOWN")
-        
-        time.sleep(interval)
+def calc_time(start, stop):
+    diff = stop - start
+    seconds = float(str(diff.total_seconds()))
+    return str(datetime.timedelta(seconds=seconds)).split(".")[0]
 
-if __name__ == "__main__":
-    switch_ip = "89.227.241.187"
-    snmp_community = "public"
-    snmp_oid = "1.3.6.1.2.1.1.1.0"
+def first_check():
+    if ping():
+        live = "\nConnexion etablie\n"
+        print(live)
+        connection_etablish_time = datetime.datetime.now()
+        accquiring_mess = "connection etablie a: " + \
+            str(connection_etablish_time).split(".")[0]
+        print(accquiring_mess)
 
-    monitor_switch(switch_ip, snmp_community, snmp_oid)
+        with open(FILE, "a") as file:
+            file.write(live)
+            file.write(accquiring_mess)
+
+        return True
+
+    else:
+        not_live = "\nConnexion impossible\n"
+        print(not_live)
+        with open(FILE, "a") as file:
+            file.write(not_live)
+        return False
+
+def main():
+    monitor_start_time = datetime.datetime.now()
+    monitoring_date_time = "monitoring started at: " + \
+        str(monitor_start_time).split(".")[0]
+
+    if first_check():
+        print(monitoring_date_time)
+
+    else:
+        while True:
+            if not ping():
+                time.sleep(1)
+            else:
+                first_check()
+                print(monitoring_date_time)
+                break
+
+        with open(FILE, "a") as file:
+            file.write("\n")
+            file.write(monitoring_date_time + "\n")
+
+        while True:
+            if ping():
+                time.sleep(5)
+            else:
+                down_time = datetime.datetime.now()
+                fail_mess = "disconnected at: " + str(down_time).split(".")[0]
+                print(fail_mess)
+
+                with open(FILE, "a") as file:
+                    file.write(fail_mess + "\n")
+
+                while not ping():
+                    time.sleep(1)
+                up_time = datetime.datetime.now()
+                uptime_message = "connected again: " + str(up_time).split(".")[0]
+                down_time = calc_time(down_time, up_time)
+                unavailablity_time = "connection wad unavailable for: " + down_time
+                print(uptime_message)
+                print(unavailablity_time)
+                with open(FILE, "a") as file:
+                    file.write(uptime_message + "\n")
+                    file.write(unavailablity_time + "\n")
+
+main()

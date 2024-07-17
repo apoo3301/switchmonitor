@@ -36,5 +36,3 @@ def watch_log_file():
                         print("new logs entry:", new_entry)
                     last_size = current_size
                 time.sleep(1)
-
-                

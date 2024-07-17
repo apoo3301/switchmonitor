@@ -1,3 +1,4 @@
+from database import database_connect
 import os
 import platform
 import subprocess
@@ -50,8 +51,11 @@ def first_check(host):
         return False
 
 def main():
-    host = "89.227.241.187"  # WIP: ADD DB & LINK DB TO AN OBJECT
+    supabase_client = database_connect()
+    response = supabase_client.from("networking").select("*").execute()
+    print("data from db: ", response)
 
+    host = "89.227.241.187"  # WIP: ADD DB & LINK DB TO AN OBJECT
     monitor_start_time = datetime.datetime.now()
     monitoring_date_time = "Monitoring started at: " + str(monitor_start_time).split(".")[0]
     

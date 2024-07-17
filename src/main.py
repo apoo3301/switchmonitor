@@ -1,40 +1,27 @@
-from database import database_connect
 import os
 import platform
 import subprocess
 import datetime
 import time
 
-FILE = os.path.join(os.getcwd(), "logs/networkinfo.log")
+FILE = os.path.join(os.getcwd(), "../logs/networkinfo.log")
 
 def ping(host):
-    """
-    Pings the given host and returns True if the host is reachable, False otherwise.
-    """
     param = "-n" if platform.system().lower() == "windows" else "-c"
     command = ["ping", param, "1", host]
     return subprocess.call(command) == 0
 
 def calculate_time(start, stop):
-    """
-    Calculates the time difference between start and stop.
-    """
     difference = stop - start
     seconds = float(difference.total_seconds())
     return str(datetime.timedelta(seconds=seconds)).split(".")[0]
 
 def log_status(ip, status, timestamp):
-    """
-    Logs the IP, status, and timestamp to the log file.
-    """
     log_entry = f"{ip}, {status}, {timestamp}\n"
     with open(FILE, "a") as file:
         file.write(log_entry)
 
 def first_check(host):
-    """
-    Performs the initial check if the host is reachable.
-    """
     if ping(host):
         status = "actif"
         connection_acquired_time = datetime.datetime.now()
@@ -51,13 +38,9 @@ def first_check(host):
         return False
 
 def main():
-    supabase_client = database_connect()
-    response = supabase_client.from("networking").select("*").execute()
-    print("data from db: ", response)
-
-    host = "89.227.241.187"  # WIP: ADD DB & LINK DB TO AN OBJECT
+    host = "89.227.241.187"
     monitor_start_time = datetime.datetime.now()
-    monitoring_date_time = "Monitoring started at: " + str(monitor_start_time).split(".")[0]
+    monitoring_date_time = str(monitor_start_time).split(".")[0]
     
     with open(FILE, "a") as file:
         file.write(f"Monitoring started at: {monitoring_date_time}\n")

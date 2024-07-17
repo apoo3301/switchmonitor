@@ -38,7 +38,7 @@ def first_check(host):
         return False
 
 def main():
-    host = "89.227.241.187"
+    host = "89.227.241.187" #WIP: convert this var into an object, and put it into the database 
     monitor_start_time = datetime.datetime.now()
     monitoring_date_time = str(monitor_start_time).split(".")[0]
     

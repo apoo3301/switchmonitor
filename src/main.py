@@ -8,7 +8,7 @@ FILE = os.path.join(os.getcwd(), "logs/networkinfo.log")
  
 def ping(host):
     """
-    Pings the given host and returns True if the host is reachable, False otherwise.
+    pings the given host and returns True if the host is reachable, False otherwise.
     """
     param = "-n" if platform.system().lower() == "windows" else "-c"
     command = ["ping", param, "1", host]
@@ -17,7 +17,7 @@ def ping(host):
  
 def calculate_time(start, stop):
     """
-    Calculates the time difference between start and stop.
+    calc the time difference between start and stop.
     """
     difference = stop - start
     seconds = float(difference.total_seconds())
@@ -25,7 +25,7 @@ def calculate_time(start, stop):
  
 def first_check(host):
     """
-    Performs the initial check if the host is reachable.
+    performs the initial check if the host is reachable.
     """
     if ping(host):
         live = "\nCONNEXION ÉTABLIE\n"
